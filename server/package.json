@@ -7,7 +7,7 @@
     "start": "vite"
   },
   "keywords": [],
-  "author": "hoadv",
+  "author": "khandt",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
