@@ -4,14 +4,26 @@ import NotFound from "./component/404!/Notfound";
 import Loading from "./component/loading/Loading";
 import AdminLayout from "./layout/AdminLayout";
 import ClientLayout from "./layout/ClientLayout";
+import Homepage from "./pages/HomePages";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ProductDetail from "./pages/DetailProduct";
+import AdminProductList from "./pages/admin/Listproduct";
 
 const routeConfig = [
   {
     path: "/",
     element: <ClientLayout />,
     children: [
+      {
+        path: "/",
+        element: <Homepage/>,
+      },
+      {
+        path: "product/:id",
+        element: <ProductDetail/>,
+      },
+
       {
         path: "login",
         element: <Login/>,
@@ -20,6 +32,7 @@ const routeConfig = [
         path: "register",
         element: <Register/>,
       },
+      
     ],
   },
   {
@@ -27,8 +40,8 @@ const routeConfig = [
     element: <AdminLayout />,
     children: [
       {
-        path: "register",
-        element: <Register/>,
+        path: "product/list",
+        element: <AdminProductList/>,
       },
     ],
   },
@@ -48,7 +61,7 @@ function App() {
   return (
     <>
       <ToastContainer />
-      <main>{routes}</main>
+      <main >{routes}</main>
       <Loading/>
     </>
   );

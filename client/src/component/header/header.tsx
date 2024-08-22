@@ -3,24 +3,38 @@ import logo from "../../assets/img/logo.png";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useUser } from "src/contexts/user";
+import axios from "axios";
+import { Category } from "src/types/products";
 
 const Header = () => {
   const { user, setUser } = useUser();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    // Cập nhật trạng thái đăng nhập khi có sự thay đổi trong `user`
     setIsLoggedIn(!!user);
   }, [user]);
+
+  useEffect(() => {
+    // Fetch categories from API
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("/categories");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setIsLoggedIn(false);
     setUser(null);
-    // Điều hướng đến trang đăng nhập hoặc trang chính
     window.location.href = "/login";
   };
 
@@ -83,31 +97,16 @@ const Header = () => {
                 />
               </svg>
             </button>
-            <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-              <a
-                href="/category/all"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Tất cả sản phẩm
-              </a>
-              <a
-                href="/category/1"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Category 1
-              </a>
-              <a
-                href="/category/2"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Category 2
-              </a>
-              <a
-                href="/category/3"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-              >
-                Category 3
-              </a>
+            <div className="absolute z-10 left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+              {categories.map((category) => (
+                <a
+                  key={category._id}
+                  href={`/category/${category._id}`}
+                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                >
+                  {category.name}
+                </a>
+              ))}
             </div>
           </div>
 
@@ -124,11 +123,11 @@ const Header = () => {
           <input
             type="search"
             placeholder="Tìm kiếm..."
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
+            className="px-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
           />
           <button
             type="submit"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
           >
             <svg
               className="w-5 h-5"
@@ -205,17 +204,37 @@ const Header = () => {
                 open={userMenuOpen}
                 onClose={handleMenuClose}
                 PaperProps={{
-                  style: {
-                    minWidth: 180,
+                  sx: {
+                    borderRadius: "0.375rem", // Tailwind's rounded-md
                   },
                 }}
               >
-                <MenuItem onClick={handleMenuClose}>
-                  <a href="/user-info" className="text-gray-700">
+                <MenuItem
+                  onClick={handleMenuClose}
+                  sx={{
+                    color: "text.secondary",
+                    "&:hover": {
+                      backgroundColor: "rgba(0, 0, 0, 0.1)", // Tailwind's bg-gray-100
+                    },
+                  }}
+                >
+                  <a
+                    href="/user/profile"
+                    style={{ width: "100%", textAlign: "left" }}
+                  >
                     Thông tin người dùng
                   </a>
                 </MenuItem>
-                <MenuItem onClick={handleLogout} className="text-gray-700">
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{
+                    color: "error.main", 
+                    "&:hover": {
+                      backgroundColor: "rgba(255, 0, 0, 0.1)", 
+                    },
+                    transition: "background-color 0.3s",
+                  }}
+                >
                   Đăng xuất
                 </MenuItem>
               </Menu>

@@ -3,7 +3,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "src/config/configAxios";
-import { useLoading } from "src/contexts/loading";
+import { useStatus } from "src/contexts/Status";
 import { Users } from "src/types/user";
 
 const Register = () => {
@@ -15,7 +15,7 @@ const Register = () => {
     watch,
   } = useForm<Users & { confirmPassword: string }>();
   const navigate = useNavigate();
-  const { setLoading } = useLoading();
+  const { setLoading } = useStatus();
   const password = watch("password");
 
   const onSubmit: SubmitHandler<Users & { confirmPassword: string }> = async (data) => {
@@ -26,7 +26,9 @@ const Register = () => {
       console.log("Đăng ký thành công:", response.data);
       reset();
       setTimeout(() => {
-        navigate("/login");
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }, 2000);
     } catch (error) {
       toast.error((error as AxiosError)?.message);

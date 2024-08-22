@@ -3,7 +3,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axiosInstance from "src/config/configAxios";
-import { useLoading } from "src/contexts/loading";
+import { useStatus } from "src/contexts/Status";
 import { useUser } from "src/contexts/user";
 import { Users } from "src/types/user";
 
@@ -14,7 +14,7 @@ const Login = () => {
     reset,
     formState: { errors },
   } = useForm<Users>();
-  const { setLoading } = useLoading();
+  const { setLoading } = useStatus();
   const navigate = useNavigate();
   const { setUser } = useUser();
 
@@ -35,9 +35,13 @@ const Login = () => {
 
       // Chuyển hướng dựa trên role của người dùng
       if (user.role === 'admin') {
-        navigate("/admin");
+        setTimeout(() => {
+          navigate("/admin");
+        }, 2000);
       } else {
-        navigate("/");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       }
     } catch (error) {
       toast.error((error as AxiosError)?.message);

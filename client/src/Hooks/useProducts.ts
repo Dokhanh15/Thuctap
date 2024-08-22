@@ -1,8 +1,9 @@
 import axios, { AxiosError } from "axios";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useLoading } from "src/contexts/loading";
-import { Product } from "src/types/Product";
+import { toast } from "react-toastify";
+import { useStatus } from "src/contexts/Status";
+import { Product } from "src/types/products";
 
 export const useProduct = () => {
   const nav = useNavigate();
@@ -10,20 +11,23 @@ export const useProduct = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [product, setProduct] = useState<Product | undefined>();
-  const [error, setError] = useState<string>("");
-  const { setLoading } = useLoading();
+  // const { setLoading } = useStatus();
+  const [loading, setLoading] = useState<boolean>(false);
+  const { setLoading: setGlobalLoading } = useStatus();
 
   const getAllProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get("/products");
+      setGlobalLoading(true);
+      const { data } = await axios.get<Product[]>("/products");
       setProducts(data);
     } catch (error) {
-      setError((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message);
     } finally {
       setLoading(false);
+      setGlobalLoading(false);
     }
-  }, [setLoading]);
+  }, [setGlobalLoading]);
 
   const totalProduct = useMemo(() => products.length, [products]);
 
@@ -31,31 +35,31 @@ export const useProduct = () => {
     getAllProduct();
   }, [getAllProduct]);
 
-  const getProductDetail = useCallback(async (id: string) => {
+  const getProductDetail = async (id: string) => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/products/${id}`);
       setProduct(data);
     } catch (error) {
-      setError((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message);
     } finally {
       setLoading(false);
     }
-  }, [setLoading]);
+  };
 
-  const handleDeleteProduct = useCallback(async (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     if (window.confirm("Xóa nha?")) {
       try {
         setLoading(true);
         await axios.delete(`/products/${id}`);
         getAllProduct();
       } catch (error) {
-        setError((error as AxiosError)?.message);
+        toast.error((error as AxiosError)?.message);
       } finally {
         setLoading(false);
       }
     }
-  }, [getAllProduct, setLoading]);
+  };
 
   const handleAddProduct = async (data: Product) => {
     try {
@@ -64,7 +68,7 @@ export const useProduct = () => {
       alert("OK");
       nav("/admin/product/list");
     } catch (error) {
-      setError((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message);
     } finally {
       setLoading(false);
     }
@@ -77,14 +81,13 @@ export const useProduct = () => {
       alert("OK");
       nav("/admin/product/list");
     } catch (error) {
-      setError((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message);
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    error,
     products,
     product,
     totalProduct,
