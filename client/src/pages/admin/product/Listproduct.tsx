@@ -276,14 +276,14 @@ const AdminProductList = () => {
             </div>
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
               <table className="min-w-full text-center">
-                <thead>
+                <thead className=" bg-zinc-300">
                   <tr className="border-b">
                     <th className="py-3 px-4">Tiêu đề</th>
                     <th className="py-3 px-4">Ảnh</th>
                     <th className="py-3 px-4">Giá</th>
                     <th className="py-3 px-4">Mô tả</th>
                     <th className="py-3 px-4">Danh mục</th>
-                    <th className="py-3 px-4">Hành động</th>
+                    <th className="py-3 px-4"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,11 +293,11 @@ const AdminProductList = () => {
                         <td className="py-4 px-6 text-sm font-medium text-gray-900">
                           {product.title}
                         </td>
-                        <td className="py-4 px-6 text-sm font-medium text-gray-900">
+                        <td className="py-4 px-6 text-sm font-medium text-gray-900 flex justify-center">
                           <img
                             src={product.image}
                             alt={product.title}
-                            className="w-20 h-20 object-cover rounded-md"
+                            className="w-24 h-20 object-cover rounded-md"
                           />
                         </td>
                         <td className="py-4 px-6 text-sm font-medium text-gray-900">

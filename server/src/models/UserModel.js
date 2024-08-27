@@ -26,6 +26,13 @@ const UserSchema = new Schema(
     confirmPassword: {
       type: String,
     },
+    phone: {
+      type: String, 
+    },
+    gender: {
+      type: String, 
+      enum: ['nam', 'nữ', 'khác'], 
+    },
     likedProducts: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product'

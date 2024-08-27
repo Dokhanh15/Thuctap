@@ -13,11 +13,11 @@ axios.defaults.baseURL = "http://localhost:3000";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <StatusProvider>
-        <UserProvider>
-          <App />
-        </UserProvider>
-      </StatusProvider>
+        <StatusProvider>
+          <UserProvider>
+            <App />
+          </UserProvider>
+        </StatusProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

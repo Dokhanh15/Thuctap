@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Loading from "src/component/loading/Loading";
 import axiosInstance from "src/config/configAxios";
 import { useStatus } from "src/contexts/Status";
 import { useUser } from "src/contexts/user";
@@ -24,7 +25,7 @@ const Login = () => {
       const response = await axiosInstance.post("/auth/login", data);
       toast.success("Đăng nhập thành công!");
       console.log("Đăng nhập thành công:", response.data);
-      
+
       const user = response.data.user;
       const token = response.data.token;
 
@@ -34,14 +35,14 @@ const Login = () => {
       reset();
 
       // Chuyển hướng dựa trên role của người dùng
-      if (user.role === 'admin') {
+      if (user.role === "admin") {
         setTimeout(() => {
           navigate("/admin");
-        }, 2000);
+        }, 1000);
       } else {
         setTimeout(() => {
           navigate("/");
-        }, 2000);
+        }, 1000);
       }
     } catch (error) {
       toast.error((error as AxiosError)?.message);
@@ -52,7 +53,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center my-10">
       <div className="bg-white p-8 rounded-lg border border-gray-300 shadow-md w-full max-w-md">
         <div className="flex justify-center items-center bg-indigo-800 rounded-full w-16 h-16 mb-4 mx-auto">
           <span role="img" aria-label="lock" className="text-3xl text-white">
@@ -63,7 +64,7 @@ const Login = () => {
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
           ĐĂNG NHẬP
         </h1>
-
+        <Loading />
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">
@@ -71,7 +72,7 @@ const Login = () => {
             </label>
             <input
               type="email"
-              placeholder="Email"
+              placeholder="Nhập địa chỉ email"
               className={`mt-1 block w-full px-3 py-2 border ${
                 errors?.email ? "border-red-500" : "border-gray-300"
               } rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}

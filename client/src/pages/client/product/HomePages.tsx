@@ -5,14 +5,16 @@ import { toast } from "react-toastify";
 import { useStatus } from "src/contexts/Status";
 import { Product } from "src/types/products";
 import ListProduct from "./ListProduct";
-import AutoSlider from "./Slide";
+import AutoSlider from "../user/Slide";
+import Loading from "src/component/loading/Loading";
+import CategoryList from "../category/Categories";
 
 function Homepage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const {setLoading} = useStatus();
-  
+  const { setLoading } = useStatus();
+
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [productsPerPage] = useState<number>(8);
+  const [productsPerPage] = useState<number>(10);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [noResults, setNoResults] = useState<boolean>(false);
@@ -27,9 +29,9 @@ function Homepage() {
         params: { category, query },
       });
       setProducts(data);
-      setNoResults(data.length === 0); // Set noResults to true if no products are found
+      setNoResults(data.length === 0);
     } catch (error) {
-      toast.error((error as AxiosError)?.message)
+      toast.error((error as AxiosError)?.message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -68,7 +70,6 @@ function Homepage() {
   const renderPaginationButtons = () => {
     const buttons = [];
 
-    // Always show the first page
     if (totalPages > 1) {
       buttons.push(
         <button
@@ -120,7 +121,6 @@ function Homepage() {
       );
     }
 
-    // Always show the last page
     buttons.push(
       <button
         key={totalPages}
@@ -140,9 +140,10 @@ function Homepage() {
 
   return (
     <>
-      {/* <Header onCategorySelect={handleCategorySelect} onSearch={handleSearch} /> */}
-      <div className="container mx-auto my-3">
-        <AutoSlider/>
+      <div className=" mx-auto my-3">
+        <Loading />
+        <CategoryList />
+        <h2 className=" mx-20 text-center border-b border-black p-5 bg-gray-100">GỢI Ý HÔM NAY</h2>
         <div className="flex flex-wrap justify-center gap-5 p-6">
           {noResults ? (
             <h3 className="text-3xl">Không tìm thấy sản phẩm</h3>

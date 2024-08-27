@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import logo from "../../assets/img/logo.png";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
@@ -12,6 +13,8 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const navigate = useNavigate(); // useNavigate hook
+  const [, setUserProfile] = useState<any>(null); // State for user profile
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -29,6 +32,21 @@ const Header = () => {
     };
     fetchCategories();
   }, []);
+
+  // Fetch user profile and navigate to profile page
+  const handleViewProfile = async () => {
+    try {
+      const response = await axios.get("/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setUserProfile(response.data);
+      navigate("/profile"); 
+    } catch (error) {
+      console.error("Error fetching user profile", error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -77,6 +95,12 @@ const Header = () => {
           >
             Trang chủ
           </a>
+          <a
+            href="/"
+            className="text-gray-800 hover:border-b-2 border-gray-600"
+          >
+            Sản phẩm
+          </a>
 
           {/* Dropdown Menu */}
           <div className="relative group">
@@ -101,7 +125,7 @@ const Header = () => {
               {categories.map((category) => (
                 <a
                   key={category._id}
-                  href={`/category/${category._id}`}
+                  href="#"
                   className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                 >
                   {category.name}
@@ -115,6 +139,12 @@ const Header = () => {
             className="text-gray-800 hover:border-b-2 border-gray-600"
           >
             Yêu thích
+          </a>
+          <a
+            href="/product/liked"
+            className="text-gray-800 hover:border-b-2 border-gray-600"
+          >
+            Liên hệ
           </a>
         </div>
 
@@ -174,7 +204,7 @@ const Header = () => {
               </a>
 
               {/* User Profile */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 cursor-pointer">
                 {user && (
                   <span className="text-gray-700">Hi, {user.username}</span>
                 )}
@@ -183,7 +213,7 @@ const Header = () => {
                     <img
                       src={user.avatar}
                       alt="User Avatar"
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full cursor-pointer"
                       onClick={handleMenuOpen}
                     />
                   ) : (
@@ -192,9 +222,7 @@ const Header = () => {
                     </IconButton>
                   )
                 ) : (
-                  <IconButton onClick={handleMenuOpen}>
-                    <AccountCircleIcon />
-                  </IconButton>
+                  <a href="/login" className="text-gray-700">Đăng nhập</a>
                 )}
               </div>
 
@@ -203,40 +231,24 @@ const Header = () => {
                 anchorEl={anchorEl}
                 open={userMenuOpen}
                 onClose={handleMenuClose}
-                PaperProps={{
-                  sx: {
-                    borderRadius: "0.375rem", // Tailwind's rounded-md
-                  },
-                }}
               >
                 <MenuItem
-                  onClick={handleMenuClose}
-                  sx={{
-                    color: "text.secondary",
-                    "&:hover": {
-                      backgroundColor: "rgba(0, 0, 0, 0.1)", // Tailwind's bg-gray-100
-                    },
+                  onClick={() => {
+                    handleViewProfile(); // Fetch and navigate to profile
+                    handleMenuClose();
                   }}
                 >
-                  <a
-                    href="/user/profile"
-                    style={{ width: "100%", textAlign: "left" }}
-                  >
-                    Thông tin người dùng
-                  </a>
+                  Tài khoản của tôi
                 </MenuItem>
                 <MenuItem
-                  onClick={handleLogout}
-                  sx={{
-                    color: "error.main", 
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 0, 0, 0.1)", 
-                    },
-                    transition: "background-color 0.3s",
+                  onClick={() => {
+                    handleViewProfile(); // Fetch and navigate to profile
+                    handleMenuClose();
                   }}
                 >
-                  Đăng xuất
+                  Đơn mua 
                 </MenuItem>
+                <MenuItem sx={{color:'red'}} onClick={handleLogout}>Đăng xuất</MenuItem>
               </Menu>
             </>
           ) : (

@@ -56,7 +56,7 @@ const Sidebar = () => {
           </div>
         </Link>
 
-        <Link to={'#'} className="no-underline">
+        <Link to={'/admin/user/list'} className="no-underline">
           <div
             className={`flex items-center p-3 my-2 mx-auto rounded-lg w-[230px] ${selectedIndex === 6 ? 'bg-[#E63673]' : 'hover:bg-[#525256]'} cursor-pointer`}
             onClick={() => handleListItemClick(6)}

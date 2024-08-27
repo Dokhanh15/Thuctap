@@ -22,6 +22,9 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
     severity: "success" as "success" | "error",
   });
   const [liked, setLiked] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  
 
   useEffect(() => {
     const checkLikedStatus = async () => {
@@ -96,9 +99,20 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
     });
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axiosInstance.get(
+          selectedCategoryId ? `/products?category=${selectedCategoryId}` : "/products"
+        );
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Lỗi khi lấy sản phẩm:", error);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedCategoryId]);
 
   return (
     <div className="flex flex-col items-center">

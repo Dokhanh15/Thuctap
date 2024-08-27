@@ -12,7 +12,7 @@ export const useProduct = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [product, setProduct] = useState<Product | undefined>();
   // const { setLoading } = useStatus();
-  const [loading, setLoading] = useState<boolean>(false);
+  const {setLoading} = useStatus();
   const { setLoading: setGlobalLoading } = useStatus();
 
   const getAllProduct = useCallback(async () => {
