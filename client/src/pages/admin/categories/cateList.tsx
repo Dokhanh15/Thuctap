@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-import { IconButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import searchIcon from "src/assets/img/search.png";
+import EditIcon from "@mui/icons-material/Edit";
+import { IconButton } from "@mui/material";
+import axios, { AxiosError } from "axios";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import searchIcon from "src/assets/img/search.png";
 import ConfirmDialog from "src/component/confirm/ConfirmDialog";
+import Loading from "src/component/loading/Loading";
+import { useStatus } from "src/contexts/Status";
 import useCategory from "src/Hooks/useCategories";
 
 const AdminCategoryList = () => {
@@ -18,10 +20,7 @@ const AdminCategoryList = () => {
   const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [categoriesPerPage] = useState<number>(8);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+  const { setLoading } = useStatus();
 
   const handleConfirm = (id: string) => {
     setConfirm(true);
@@ -30,7 +29,15 @@ const AdminCategoryList = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`/categories/${idDelete}`);
+      setConfirm(false);
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`/categories/${idDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       toast.success("Xóa danh mục thành công!");
       fetchCategories();
       setConfirm(false);
@@ -38,6 +45,8 @@ const AdminCategoryList = () => {
     } catch (error) {
       toast.error((error as AxiosError)?.message);
       console.error("Error deleting category", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,18 +56,24 @@ const AdminCategoryList = () => {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   };
 
   const filteredCategories = categories.filter((category) =>
     category.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / categoriesPerPage));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredCategories.length / categoriesPerPage)
+  );
   const boundedCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
   const indexOfLastCategory = boundedCurrentPage * categoriesPerPage;
   const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
-  const currentCategories = filteredCategories.slice(indexOfFirstCategory, indexOfLastCategory);
+  const currentCategories = filteredCategories.slice(
+    indexOfFirstCategory,
+    indexOfLastCategory
+  );
 
   const paginate = (pageNumber: number) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -76,8 +91,10 @@ const AdminCategoryList = () => {
           key={1}
           onClick={() => paginate(1)}
           className={`px-2 py-1 min-w-[40px] rounded-md ${
-            1 === boundedCurrentPage ? "bg-black text-white font-bold" : "bg-white text-black"
-          } hover:bg-gray-200`}
+            1 === boundedCurrentPage
+              ? "bg-black text-white font-bold"
+              : "bg-white text-black"
+          } `}
         >
           1
         </button>
@@ -85,11 +102,7 @@ const AdminCategoryList = () => {
     }
 
     if (boundedCurrentPage > 3 && totalPages > 1) {
-      buttons.push(
-        <span key="start-ellipsis">
-          ...
-        </span>
-      );
+      buttons.push(<span key="start-ellipsis">...</span>);
     }
 
     const startPage = Math.max(2, boundedCurrentPage - 1);
@@ -101,8 +114,10 @@ const AdminCategoryList = () => {
           key={number}
           onClick={() => paginate(number)}
           className={`px-2 py-1 min-w-[40px] rounded-md ${
-            number === boundedCurrentPage ? "bg-black text-white font-bold" : "bg-white text-black"
-          } hover:bg-gray-200`}
+            number === boundedCurrentPage
+              ? "bg-black text-white font-bold"
+              : "bg-white text-black"
+          } `}
         >
           {number}
         </button>
@@ -110,11 +125,7 @@ const AdminCategoryList = () => {
     }
 
     if (boundedCurrentPage < totalPages - 2) {
-      buttons.push(
-        <span key="end-ellipsis">
-          ...
-        </span>
-      );
+      buttons.push(<span key="end-ellipsis">...</span>);
     }
 
     // Always show the last page
@@ -123,8 +134,10 @@ const AdminCategoryList = () => {
         key={totalPages}
         onClick={() => paginate(totalPages)}
         className={`px-2 py-1 min-w-[40px] rounded-md ${
-          totalPages === boundedCurrentPage ? "bg-black text-white font-bold" : "bg-white text-black"
-        } hover:bg-gray-200`}
+          totalPages === boundedCurrentPage
+            ? "bg-black text-white font-bold"
+            : "bg-white text-black"
+        } `}
       >
         {totalPages}
       </button>
@@ -138,7 +151,6 @@ const AdminCategoryList = () => {
       <div className="container mx-auto">
         <div className="space-y-4">
           <h3 className="text-center text-5xl">Danh sách danh mục</h3>
-
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <div className="relative flex items-center">
@@ -226,6 +238,7 @@ const AdminCategoryList = () => {
                       colSpan={4}
                       className="py-4 px-6 text-sm font-medium text-gray-900"
                     >
+                      <Loading />
                       Không tìm thấy danh mục nào.
                     </td>
                   </tr>

@@ -53,20 +53,23 @@ class AuthController {
         const errors = error.details.map((err) => err.message).join(", ");
         throw new ApiError(StatusCodes.BAD_REQUEST, errors);
       }
+  
       const checkUser = await getUserByEmail(email);
       if (!checkUser)
         throw new ApiError(StatusCodes.BAD_REQUEST, "Tài khoản không hợp lệ");
-
-      const checkPassword = await bcryptjs.compare(
-        password,
-        checkUser.password
-      );
+  
+      // Kiểm tra xem tài khoản có bị khóa không
+      if (checkUser.isLocked)
+        throw new ApiError(StatusCodes.FORBIDDEN, "Tài khoản đã bị khóa");
+  
+      const checkPassword = await bcryptjs.compare(password, checkUser.password);
       if (!checkPassword)
         throw new ApiError(StatusCodes.BAD_REQUEST, "Tài khoản không hợp lệ");
-
+  
       const token = jwt.sign({ id: checkUser._id }, process.env.SECRET_KEY, {
         expiresIn: "1w",
       });
+  
       res.status(StatusCodes.OK).json({
         message: "Đăng nhập thành công",
         user: { ...checkUser.toObject(), password: undefined },
@@ -76,6 +79,7 @@ class AuthController {
       next(error);
     }
   }
+  
 
   async getAllUsers(req, res, next) {
     try {
@@ -122,7 +126,6 @@ class AuthController {
   
     try {
       const user = await User.findById(req.user._id);
-  
       if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
       }
@@ -189,6 +192,45 @@ class AuthController {
       );
 
       res.status(StatusCodes.OK).json({ isValid: isOldPasswordValid });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  // Khóa tài khoản
+  async lockUser(req, res, next) {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(StatusCodes.NOT_FOUND).json({ message: "Người dùng không tồn tại" });
+      }
+
+      user.isLocked = true;
+      await user.save();
+
+      res.status(StatusCodes.OK).json({ message: "Tài khoản đã bị khóa" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Mở khóa tài khoản
+  async unlockUser(req, res, next) {
+    try {
+      const userId = req.params.id;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(StatusCodes.NOT_FOUND).json({ message: "Người dùng không tồn tại" });
+      }
+
+      user.isLocked = false;
+      await user.save();
+
+      res.status(StatusCodes.OK).json({ message: "Tài khoản đã được mở khóa" });
     } catch (error) {
       next(error);
     }

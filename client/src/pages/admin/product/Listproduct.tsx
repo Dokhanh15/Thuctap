@@ -12,6 +12,7 @@ import { useStatus } from "src/contexts/Status";
 import { Category, Product } from "src/types/products";
 import { toast } from "react-toastify";
 import ConfirmDialog from "src/component/confirm/ConfirmDialog";
+import Loading from "src/component/loading/Loading";
 
 const AdminProductList = () => {
   const { setLoading } = useStatus();
@@ -100,14 +101,23 @@ const AdminProductList = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`/products/${idDelete}`);
+      setLoading(true);
+      setConfirm(false);
+      const token = localStorage.getItem("token");
+      await axios.delete(`/products/${idDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       getAllProduct();
-      toast.success("Thành công!");
+      toast.success("Xóa sản phẩm thành công!");
       setConfirm(false);
       setIdDelete(null);
     } catch (error) {
       toast.error((error as AxiosError)?.message);
       console.error("Error fetching categories", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,7 +156,7 @@ const AdminProductList = () => {
             1 === boundedCurrentPage
               ? "bg-black text-white font-bold"
               : "bg-white text-black"
-          } hover:bg-gray-200`}
+          }`}
         >
           1
         </button>
@@ -173,7 +183,7 @@ const AdminProductList = () => {
             number === boundedCurrentPage
               ? "bg-black text-white font-bold"
               : "bg-white text-black"
-          } hover:bg-gray-200`}
+          }`}
         >
           {number}
         </button>
@@ -197,7 +207,7 @@ const AdminProductList = () => {
           totalPages === boundedCurrentPage
             ? "bg-black text-white font-bold"
             : "bg-white text-black"
-        } hover:bg-gray-200`}
+        }`}
       >
         {totalPages}
       </button>
@@ -309,7 +319,7 @@ const AdminProductList = () => {
                         <td className="py-4 px-6 text-sm font-medium text-gray-900">
                           {product.category?.name}
                         </td>
-                        
+
                         <td className="py-4 px-6 text-sm font-medium text-gray-900">
                           <div className="flex justify-center gap-2">
                             <Link
@@ -343,6 +353,7 @@ const AdminProductList = () => {
                         colSpan={7}
                         className="py-4 px-6 text-sm font-medium text-gray-900"
                       >
+                        <Loading />
                         Không tìm thấy sản phẩm nào.
                       </td>
                     </tr>

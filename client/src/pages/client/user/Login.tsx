@@ -23,18 +23,23 @@ const Login = () => {
     try {
       setLoading(true);
       const response = await axiosInstance.post("/auth/login", data);
+  
+      const user = response.data.user;
+  
+      if (user.isLocked) {
+        toast.error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+        return;
+      }
+  
       toast.success("Đăng nhập thành công!");
       console.log("Đăng nhập thành công:", response.data);
-
-      const user = response.data.user;
+  
       const token = response.data.token;
-
       localStorage.setItem("token", token);
       setUser(user);
       localStorage.setItem("user", JSON.stringify(user));
       reset();
-
-      // Chuyển hướng dựa trên role của người dùng
+  
       if (user.role === "admin") {
         setTimeout(() => {
           navigate("/admin");
@@ -45,12 +50,32 @@ const Login = () => {
         }, 1000);
       }
     } catch (error) {
-      toast.error((error as AxiosError)?.message);
+      const axiosError = error as AxiosError;
+  
+      if (axiosError.response) {
+        // Kiểm tra xem response trả về lỗi gì và hiển thị thông báo tương ứng
+        const errorMessage = (axiosError.response.data as any)?.message;
+  
+        // Ví dụ về các lỗi cụ thể
+        if (axiosError.response.status === 403) {
+          toast.error("Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ.");
+        } else if (axiosError.response.status === 400 && errorMessage === "Mật khẩu không đúng") {
+          toast.error("Mật khẩu không đúng. Vui lòng kiểm tra lại.");
+        } else {
+          toast.error(errorMessage || "Đã xảy ra lỗi.");
+        }
+      } else {
+        toast.error(axiosError.message || "Đã xảy ra lỗi khi đăng nhập.");
+      }
+  
       console.error("Lỗi đăng nhập:", error);
     } finally {
       setLoading(false);
     }
   };
+  
+  
+  
 
   return (
     <div className="flex flex-col items-center justify-center my-10">

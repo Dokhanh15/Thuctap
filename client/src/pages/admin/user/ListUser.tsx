@@ -1,24 +1,27 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-import { IconButton } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import LockIcon from "@mui/icons-material/Lock";
-import searchIcon from "src/assets/img/search.png";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
+import { IconButton } from "@mui/material";
+import axios, { AxiosError } from "axios";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import searchIcon from "src/assets/img/search.png";
 import ConfirmDialog from "src/component/confirm/ConfirmDialog";
+import Loading from "src/component/loading/Loading";
 import { useStatus } from "src/contexts/Status";
+import { Users } from "src/types/user";
 
-const AdminUserList = () => {
-  const [users, setUsers] = useState<any[]>([]);
+const AdminUserList: React.FC = () => {
+  const [users, setUsers] = useState<Users[]>([]);
   const [confirm, setConfirm] = useState(false);
   const [idLock, setIdLock] = useState<string | null>(null);
+  const [unlockConfirm, setUnlockConfirm] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
   const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [usersPerPage] = useState<number>(8);
   const { setLoading } = useStatus();
 
+  // Fetch users data from API
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -26,7 +29,7 @@ const AdminUserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
       const response = await axios.get("/auth", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -34,48 +37,77 @@ const AdminUserList = () => {
       });
       setUsers(response.data);
     } catch (error) {
-      toast.error((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message || "Lỗi không xác định");
       console.error("Error fetching users", error);
     } finally {
       setLoading(false);
     }
   };
-  
 
+  // Handle confirmation dialog for locking a user
   const handleConfirm = (id: string) => {
     setConfirm(true);
     setIdLock(id);
   };
 
+  // Handle locking a user
   const handleLock = async () => {
     try {
       setLoading(true);
-      await axios.post(`/api/users/lock/${idLock}`);
-      toast.success("Khóa tài khoản thành công!");
-      fetchUsers();
-      setConfirm(false);
-      setIdLock(null);
+      if (idLock) {
+        await axios.post(`/auth/lock/${idLock}`);
+        toast.success("Khóa tài khoản thành công!");
+        fetchUsers();
+        setConfirm(false);
+        setIdLock(null);
+      }
     } catch (error) {
-      toast.error((error as AxiosError)?.message);
+      toast.error((error as AxiosError)?.message || "Lỗi không xác định");
       console.error("Error locking user", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // Hàm xử lý mở khóa tài khoản
+  const handleUnlockConfirm = (id: string) => {
+    setUnlockConfirm(id);
+  };
+
+  // Handle unlocking a user
+  const handleUnlock = async () => {
+    try {
+      setLoading(true);
+      if (unlockConfirm) {
+        await axios.post(`/auth/unlock/${unlockConfirm}`);
+        toast.success("Mở khóa tài khoản thành công!");
+        fetchUsers();
+        setUnlockConfirm(null);
+      }
+    } catch (error) {
+      toast.error((error as AxiosError)?.message || "Lỗi không xác định");
+      console.error("Error unlocking user", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  // Handle search icon click
   const handleSearchIconClick = () => {
     setIsSearchVisible(!isSearchVisible);
   };
 
+  // Handle search input change
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
     setCurrentPage(1); // Reset to first page on search
   };
 
+  // Filter users based on search input
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Pagination logic
   const totalPages = Math.max(
     1,
     Math.ceil(filteredUsers.length / usersPerPage)
@@ -91,6 +123,7 @@ const AdminUserList = () => {
     }
   };
 
+  // Render pagination buttons
   const renderPaginationButtons = () => {
     const buttons = [];
 
@@ -103,7 +136,7 @@ const AdminUserList = () => {
             1 === boundedCurrentPage
               ? "bg-black text-white font-bold"
               : "bg-white text-black"
-          } hover:bg-gray-200`}
+          }`}
         >
           1
         </button>
@@ -126,7 +159,7 @@ const AdminUserList = () => {
             number === boundedCurrentPage
               ? "bg-black text-white font-bold"
               : "bg-white text-black"
-          } hover:bg-gray-200`}
+          } `}
         >
           {number}
         </button>
@@ -145,7 +178,7 @@ const AdminUserList = () => {
           totalPages === boundedCurrentPage
             ? "bg-black text-white font-bold"
             : "bg-white text-black"
-        } hover:bg-gray-200`}
+        }`}
       >
         {totalPages}
       </button>
@@ -195,7 +228,7 @@ const AdminUserList = () => {
                 {currentUsers.length > 0 ? (
                   currentUsers.map((user) => (
                     <tr key={user._id} className="bg-white border-b">
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900 flex justify-center">
+                      <td className="py-4 px-6 text-sm font-medium text-gray-900 flex justify-center ">
                         <img
                           src={user.avatar}
                           alt={user.username}
@@ -209,48 +242,45 @@ const AdminUserList = () => {
                         {user.email}
                       </td>
                       <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        {user.phone || "Chưa có"}
+                        {user.phone || "N/A"}
                       </td>
                       <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        {user.role || "Chưa có"}
+                        {user.role || "User"}
                       </td>
-                      <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                        <div className="flex justify-center gap-2">
-                          <IconButton
-                            onClick={() => handleConfirm(user._id)}
-                            sx={{
-                              backgroundColor: "error.main",
-                              color: "common.white",
-                              p: 1,
-                              borderRadius: "8px",
-                              transition: "background-color 0.3s",
-                              "&:hover": {
-                                backgroundColor: "error.dark",
-                              },
-                            }}
-                          >
-                            <LockIcon />
+                      <td className="py-4 px-6 text-sm font-medium text-gray-900 flex items-center space-x-2">
+                        {user.isLocked ? (
+                          <>
+                            <IconButton
+                              onClick={() => handleUnlockConfirm(user._id)}
+                            >
+                              < LockIcon style={{ color: "red" }} />
+                            </IconButton>
+                            <span className="text-red-500">
+                              Đã khóa tài khoản
+                            </span>
+                          </>
+                        ) : (
+                          <IconButton onClick={() => handleConfirm(user._id)}>
+                            <LockOpenIcon style={{ color: "green" }} />
                           </IconButton>
-                        </div>
+                        )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={5}
-                      className="py-4 px-6 text-sm font-medium text-gray-900"
-                    >
-                      Không tìm thấy người dùng nào.
+                    <td colSpan={6} className="py-4 text-center text-gray-500">
+                      <Loading />
+                      Không có người dùng nào.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
 
-          <div className="mt-4 flex justify-center">
-            {renderPaginationButtons()}
+            <div className="py-4 flex justify-center">
+              {renderPaginationButtons()}
+            </div>
           </div>
         </div>
       </div>
@@ -261,8 +291,18 @@ const AdminUserList = () => {
         content="Bạn có chắc chắn muốn khóa tài khoản này không?"
         cancelText="Hủy bỏ"
         confirmText="Khóa"
-        onConfirm={handleLock}
         onClose={() => setConfirm(false)}
+        onConfirm={handleLock}
+      />
+
+      <ConfirmDialog
+        open={unlockConfirm !== null}
+        title="Xác nhận mở khóa tài khoản"
+        content="Bạn có chắc chắn muốn mở khóa tài khoản này không?"
+        cancelText="Hủy bỏ"
+        confirmText="Mở khóa"
+        onClose={() => setUnlockConfirm(null)}
+        onConfirm={handleUnlock}
       />
     </>
   );

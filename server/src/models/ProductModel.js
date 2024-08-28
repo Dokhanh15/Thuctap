@@ -19,13 +19,9 @@ const ProductSchema = new Schema(
       required: true,
     },
     category: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-    },
-    isShow: {
-      type: Boolean,
-      default: true,
-    },
+    }
   },
   {
     timestamps: true,

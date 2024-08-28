@@ -2,9 +2,10 @@ import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import Loading from "src/component/loading/Loading";
 import CategoryForm from "src/component/ProductForm/CategoryForm";
 import { useStatus } from "src/contexts/Status";
-import { Category} from "src/types/products";
+import { Category } from "src/types/products";
 
 function AdminCategoryEdit() {
   const nav = useNavigate();
@@ -26,12 +27,18 @@ function AdminCategoryEdit() {
     };
 
     fetchCategory();
-  }, [id]);
+  }, [id, setLoading]);
 
-  const onSubmit = async (values: Category) => {
+  const token = localStorage.getItem("token");
+  const onSubmit = async (formData: FormData) => {
     try {
       setLoading(true);
-      await axios.put(`/categories/${id}`, values);
+      await axios.put(`/categories/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       toast.success("Thành công!");
       setTimeout(() => {
         nav("/admin/category/list");
@@ -48,11 +55,8 @@ function AdminCategoryEdit() {
     <>
       <div className="container mx-auto px-4">
         <div className="space-y-4">
-          <CategoryForm
-            onSubmit={onSubmit}
-            initialValues={category}
-            isEdit
-          />
+          <Loading />
+          <CategoryForm onSubmit={onSubmit} initialValues={category} isEdit />
         </div>
       </div>
     </>

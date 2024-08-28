@@ -32,7 +32,7 @@ const Sidebar = () => {
             onClick={() => handleListItemClick(0)}
           >
             <DashboardIcon className="text-white" />
-            <span className="ml-4">Bảng điều khiển</span>
+            <span className="ml-4">Quản trị hệ thống</span>
           </div>
         </Link>
 
@@ -42,7 +42,7 @@ const Sidebar = () => {
             onClick={() => handleListItemClick(1)}
           >
             <TableChartIcon className="text-white" />
-            <span className="ml-4">Sản phẩm</span>
+            <span className="ml-4">Quản lý sản phẩm</span>
           </div>
         </Link>
 
@@ -52,7 +52,7 @@ const Sidebar = () => {
             onClick={() => handleListItemClick(2)}
           >
             <ReceiptIcon className="text-white" />
-            <span className="ml-4">Danh mục</span>
+            <span className="ml-4">Quản lý danh mục</span>
           </div>
         </Link>
 
@@ -62,7 +62,7 @@ const Sidebar = () => {
             onClick={() => handleListItemClick(6)}
           >
             <AccountCircleIcon className="text-white" />
-            <span className="ml-4">Người dùng</span>
+            <span className="ml-4">Quản lý người dùng</span>
           </div>
         </Link>
 

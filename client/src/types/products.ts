@@ -6,7 +6,6 @@ export type Product = {
   image: string;
   description: string;
   category: Category;
-  isShow: boolean;
   rating: {
     count: number;
     rate: number;
@@ -25,12 +24,12 @@ export type Category = {
 
 // ProductFormParams type
 export type ProductFormParams = {
+  _id: string;
   title: string;
   price: number;
-  image: string;
+  image: string|File| null;
   description: string;
-  category: string; 
-  isShow: boolean;
+  category: string;
 };
 
 // Định nghĩa kiểu cho sản phẩm trong giỏ hàng

@@ -27,16 +27,19 @@ const UserSchema = new Schema(
       type: String,
     },
     phone: {
-      type: String, 
+      type: String,
     },
     gender: {
-      type: String, 
-      enum: ['nam', 'nữ', 'khác'], 
+      type: String,
+      enum: ["nam", "nữ", "khác"],
     },
-    likedProducts: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product'
-    }],
+    likedProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+    isLocked: { type: Boolean, default: false },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",

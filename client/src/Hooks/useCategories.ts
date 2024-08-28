@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useStatus } from "src/contexts/Status";
 import { Category } from "src/types/products";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const useCategory = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const { setLoading } = useStatus();
   const [error, setError] = useState<string | null>(null);
-
+  const nav = useNavigate();
   // Hàm để lấy danh sách các category
   const fetchCategories = async () => {
     setLoading(true);
@@ -35,8 +36,11 @@ const useCategory = () => {
       const response = await axios.post<Category>("/categories", newCategory);
       setCategories([...categories, response.data]);
       toast.success("Thêm danh mục thành công!");
+      nav('/admin/category/list')
     } catch (err) {
       setError("Không thể thêm category");
+      console.log(err);
+      toast.error((err as AxiosError)?.message)
     } finally {
       setLoading(false);
     }
@@ -60,8 +64,11 @@ const useCategory = () => {
           category._id === id ? response.data : category
         )
       );
+      nav('/admin/category/list')
     } catch (err) {
       setError("Không thể cập nhật category");
+      console.log(err);
+      toast.error((err as AxiosError)?.message)
     } finally {
       setLoading(false);
     }
@@ -77,6 +84,8 @@ const useCategory = () => {
       toast.success("Xóa danh mục thành công!");
     } catch (err) {
       setError("Không thể xóa category");
+      console.log(err);
+      toast.error((err as AxiosError)?.message)
     } finally {
       setLoading(false);
     }

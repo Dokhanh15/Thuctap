@@ -1,50 +1,62 @@
 import { useEffect, useState } from "react";
 import { Field, Form } from "react-final-form";
-import axios from "axios";
 import { Category } from "src/types/products";
 
 type CategoryFormProps = {
-  onSubmit: (values: Category) => void;
+  onSubmit: (formData: FormData) => void;
   initialValues?: Category;
   isEdit?: boolean;
 };
 
 function CategoryForm({ onSubmit, initialValues, isEdit }: CategoryFormProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | ArrayBuffer | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get("/categories");
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (initialValues && initialValues._id) {
-      setSelectedCategoryId(initialValues._id);
+    if (initialValues && initialValues.image) {
+      setImagePreview(initialValues.image);
     }
   }, [initialValues]);
 
-  const validate = (values: Category) => {
-    const { name, image, description } = values;
-    const errors: { [key: string]: string } = {};
-    if (!name) errors.name = "Vui lòng nhập tên danh mục";
-    if (!image) errors.image = "Vui lòng nhập đường dẫn hình ảnh";
-    if (!description) errors.description = "Vui lòng nhập mô tả";
+  useEffect(() => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string | ArrayBuffer | null);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [file]);
 
+  const validate = (values: Category) => {
+    const errors: { [key: string]: string } = {};
+    if (!values.name) errors.name = "Vui lòng nhập tên danh mục";
     return errors;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleFormSubmit = async (values: Category) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("description", values.description || '');
+
+    if (file) {
+      formData.append("image", file);
+    } else if (imagePreview && typeof imagePreview === 'string') {
+      formData.append("existingImage", imagePreview);
+    }
+
+    await onSubmit(formData);
   };
 
   return (
     <Form
-      onSubmit={onSubmit}
+      onSubmit={handleFormSubmit}
       validate={validate}
       initialValues={initialValues || { name: "", image: "", description: "" }}
       render={({ handleSubmit, submitting }) => (
@@ -56,6 +68,7 @@ function CategoryForm({ onSubmit, initialValues, isEdit }: CategoryFormProps) {
             {isEdit ? "Cập nhật danh mục" : "Thêm danh mục mới"}
           </h2>
           <div className="space-y-6">
+            {/* Name Field */}
             <Field name="name">
               {({ input, meta }) => (
                 <div>
@@ -66,9 +79,7 @@ function CategoryForm({ onSubmit, initialValues, isEdit }: CategoryFormProps) {
                     {...input}
                     type="text"
                     className={`mt-2 block w-full px-5 py-3 border rounded-lg shadow-md ${
-                      meta.touched && meta.error
-                        ? "border-red-600"
-                        : "border-gray-300"
+                      meta.touched && meta.error ? "border-red-600" : "border-gray-300"
                     } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     placeholder="Nhập tên danh mục"
                   />
@@ -79,29 +90,28 @@ function CategoryForm({ onSubmit, initialValues, isEdit }: CategoryFormProps) {
               )}
             </Field>
 
-            <Field name="image">
-              {({ input, meta }) => (
-                <div>
-                  <label className="block text-lg font-medium text-gray-700">
-                    Hình ảnh
-                  </label>
-                  <input
-                    {...input}
-                    type="text"
-                    className={`mt-2 block w-full px-5 py-3 border rounded-lg shadow-md ${
-                      meta.touched && meta.error
-                        ? "border-red-600"
-                        : "border-gray-300"
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    placeholder="Nhập đường dẫn hình ảnh"
+            {/* Image Field */}
+            <div>
+              <label className="block text-lg font-medium text-gray-700">
+                Hình ảnh
+              </label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="mt-2 block w-full px-5 py-3 border rounded-lg shadow-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {imagePreview && (
+                <div className="mt-4">
+                  <img
+                    src={imagePreview as string}
+                    alt="Preview"
+                    className="w-64 h-auto border border-gray-300 rounded-lg"
                   />
-                  {meta.touched && meta.error && (
-                    <p className="mt-1 text-sm text-red-600">{meta.error}</p>
-                  )}
                 </div>
               )}
-            </Field>
+            </div>
 
+            {/* Description Field */}
             <Field name="description">
               {({ input }) => (
                 <div>

@@ -4,6 +4,8 @@ export type Users = {
     avatar: string;
     email: string;
     password: string;
+    isLocked: boolean;
+    role: string;
     phone?: string; 
     gender?: 'nam' | 'nữ' | 'khác'; 
   };
