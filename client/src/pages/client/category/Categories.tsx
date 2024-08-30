@@ -36,7 +36,7 @@ const CategoryList = () => {
       <div>
         <h3 className="text-x px-20  text-gray-800">DANH MỤC</h3>
         <div className="grid grid-cols-10 gap-2 px-20 justify-center mb-20">
-          {categories.slice(0, 10).map((category) => (
+          {categories.map((category) => (
             <div
               key={category._id}
               className="flex flex-col items-center p-2 bg-white shadow-sm rounded-md transition-transform transform hover:scale-105"
