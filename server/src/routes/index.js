@@ -4,6 +4,7 @@ import categoriesRouter from "./categories";
 import productsRouter from "./products";
 import colorsRouter from "./coler";
 import sizesRouter from "./size";
+import likeRouter from "./likeProduct";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/categories", categoriesRouter);
 router.use("/products", productsRouter);
 router.use("/colors", colorsRouter);  
 router.use("/sizes", sizesRouter);
+router.use("/userlike", likeRouter);
 
 export default router;

@@ -11,7 +11,7 @@ const authMiddleware = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        req.user = await User.findById(decoded.id); // Gán thông tin người dùng vào req.user
+        req.user = await User.findById(decoded.id);
         if (!req.user) {
             return res.status(401).json({ message: 'Người dùng không tồn tại!' });
         }

@@ -8,13 +8,15 @@ import { useStatus } from "src/contexts/Status";
 function AdminProductAdd() {
   const nav = useNavigate();
   const { setLoading } = useStatus();
-
+  const token = localStorage.getItem("token");
   const onSubmit = async (formData: FormData) => {
     try {
       setLoading(true);
       await axios.post("/products", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "multipart/form-data"
+          ,
+        Authorization: `Bearer ${token}`,
         },
       });
       toast.success("Thành công!");

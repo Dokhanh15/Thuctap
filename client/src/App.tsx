@@ -3,18 +3,19 @@ import { ToastContainer } from "react-toastify";
 import NotFound from "./component/404!/Notfound";
 import AdminLayout from "./layout/AdminLayout";
 import ClientLayout from "./layout/ClientLayout";
-import ProductDetail from "./pages/client/product/DetailProduct";
-import Homepage from "./pages/client/product/HomePages";
-import Login from "./pages/client/user/Login";
-import Register from "./pages/client/user/Register";
-import AdminProductList from "./pages/admin/product/Listproduct";
-import AdminProductAdd from "./pages/admin/product/AddProduct";
-import AdminProductEdit from "./pages/admin/product/UpdateProduct";
-import UserProfile from "./pages/client/user/Profile/Profile";
-import CategoryList from "./pages/admin/categories/cateList";
 import AdminCategoryAdd from "./pages/admin/categories/cateAdd";
 import AdminCategoryEdit from "./pages/admin/categories/cateEdit";
+import CategoryList from "./pages/admin/categories/cateList";
+import AdminProductAdd from "./pages/admin/product/AddProduct";
+import AdminProductList from "./pages/admin/product/Listproduct";
+import AdminProductEdit from "./pages/admin/product/UpdateProduct";
 import AdminUserList from "./pages/admin/user/ListUser";
+import ProductDetail from "./pages/client/product/DetailProduct";
+import Homepage from "./pages/client/product/HomePages";
+import LikedProducts from "./pages/client/product/ProductLike";
+import Login from "./pages/client/user/Login";
+import UserProfile from "./pages/client/user/Profile/Profile";
+import Register from "./pages/client/user/Register";
 
 const routeConfig = [
   {
@@ -28,6 +29,10 @@ const routeConfig = [
       {
         path: "product/:id",
         element: <ProductDetail/>,
+      },
+      {
+        path: "product/liked",
+        element: <LikedProducts/>,
       },
 
       {

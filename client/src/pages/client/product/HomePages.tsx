@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { useStatus } from "src/contexts/Status";
 import { Product } from "src/types/products";
 import ListProduct from "./ListProduct";
-import AutoSlider from "../user/Slide";
 import Loading from "src/component/loading/Loading";
 import CategoryList from "../category/Categories";
 
@@ -138,6 +137,8 @@ function Homepage() {
     return buttons;
   };
 
+  
+
   return (
     <>
       <div className=" mx-auto my-3">
@@ -149,7 +150,7 @@ function Homepage() {
             <h3 className="text-3xl">Không tìm thấy sản phẩm</h3>
           ) : (
             currentProducts.map((product) => (
-              <ListProduct key={product._id} product={product} />
+              <ListProduct key={product._id} product={product}/>
             ))
           )}
         </div>

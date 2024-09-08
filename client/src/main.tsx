@@ -7,17 +7,20 @@ import App from "./App.tsx";
 import "./index.css";
 import { StatusProvider } from "./contexts/Status.tsx";
 import { UserProvider } from "./contexts/user.tsx";
+import { CartProvider } from "./contexts/Card.tsx";
 
 axios.defaults.baseURL = "http://localhost:3000";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
-        <StatusProvider>
-          <UserProvider>
+      <StatusProvider>
+        <UserProvider>
+          <CartProvider>
             <App />
-          </UserProvider>
-        </StatusProvider>
+          </CartProvider>
+        </UserProvider>
+      </StatusProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

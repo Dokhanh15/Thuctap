@@ -1,10 +1,14 @@
+// Updated ListProduct.tsx
+
 import { FC, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "src/contexts/user";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import { Product } from "src/types/products";
 import axiosInstance from "src/config/configAxios";
+import { toast } from "react-toastify";
+import { AxiosError } from "axios";
+import { Product } from "src/types/products";
 
 type ProductCardProps = {
   product: Product;
@@ -12,26 +16,19 @@ type ProductCardProps = {
 
 const ListProduct: FC<ProductCardProps> = ({ product }) => {
   const [hovered, setHovered] = useState(false);
-//   const { addToCart } = useProductCart();
   const { user } = useUser();
   const navigate = useNavigate();
   const [quantity] = useState<number>(1);
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success" as "success" | "error",
-  });
   const [liked, setLiked] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  
 
   useEffect(() => {
     const checkLikedStatus = async () => {
-      const token = localStorage.getItem("Token");
+      const token = localStorage.getItem("token");
       if (token) {
         try {
-          const response = await axiosInstance.get("/users/liked-products");
+          const response = await axiosInstance.get("/userlike/liked-products", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           const likedProducts = response.data.map((item: Product) => item._id);
           setLiked(likedProducts.includes(product._id));
         } catch (error) {
@@ -52,31 +49,38 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
   };
 
   const handleLikeClick = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Bạn cần đăng nhập để thực hiện chức năng này.");
+      navigate("/login");
+      return;
+    }
+
     try {
       if (liked) {
-        await axiosInstance.post(`/users/unlike/${product._id}`);
-        setSnackbar({
-          open: true,
-          message: "Đã bỏ thích sản phẩm",
-          severity: "success",
-        });
-        window.location.reload();
+        await axiosInstance.post(
+          `/userlike/unlike/${product._id}`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Đã bỏ thích sản phẩm");
+        setLiked(false);
       } else {
-        await axiosInstance.post(`/users/like/${product._id}`);
-        setSnackbar({
-          open: true,
-          message: "Đã thích sản phẩm",
-          severity: "success",
-        });
+        await axiosInstance.post(
+          `/userlike/like/${product._id}`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        toast.success("Đã thích sản phẩm");
+        setLiked(true);
       }
-      setLiked(!liked);
     } catch (err) {
-      console.error(err);
-      setSnackbar({
-        open: true,
-        message: "Có lỗi xảy ra",
-        severity: "error",
-      });
+      console.error("Error in handleLikeClick:", err);
+      toast.error((err as AxiosError)?.message || "Có lỗi xảy ra!");
     }
   };
 
@@ -91,52 +95,37 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
     }
 
     if (quantity <= 0) return;
-    // addToCart({ product, quantity });
-    setSnackbar({
-      open: true,
-      message: "Thêm vào giỏ hàng thành công!",
-      severity: "success",
-    });
+    // Xử lý thêm sản phẩm vào giỏ hàng ở đây
   };
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await axiosInstance.get(
-          selectedCategoryId ? `/products?category=${selectedCategoryId}` : "/products"
-        );
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Lỗi khi lấy sản phẩm:", error);
-      }
-    };
-
-    fetchProducts();
-  }, [selectedCategoryId]);
-
   return (
-    <div className="flex flex-col items-center">
+    <div className="items-center">
       <div
-        className="max-w-xs h-80 flex flex-col justify-between shadow-lg transition-transform transform hover:scale-10"
+        className="max-w-xs h-80 flex flex-col justify-between shadow-lg transition-transform transform hover:scale-105"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Link to={``} className="cursor-default">
+        <div className="cursor-default">
           <div
-            className="relative h-64 bg-cover bg-center "
+            className="relative h-64 bg-cover bg-center"
             style={{ backgroundImage: `url(${product.image})` }}
           >
             <div
-              className={`absolute top-3 right-3 p-2 cursor-pointer ${
-                liked ? "text-red-500" : "text-black"
-              } hover:opacity-70`}
+              className={`absolute top-3 right-3 p-2 cursor-pointer transition-all duration-300 ease-in-out ${
+                hovered || liked
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 -translate-y-4"
+              } ${liked ? "text-red-500" : "text-black"} hover:opacity-70`}
               onClick={handleLikeClick}
             >
               {liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
             </div>
+
             <div
-              className={`absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 h-36 text-white p-2 transition-opacity ${
-                hovered ? "opacity-100" : "opacity-0"
+              className={`absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 h-36 text-white p-2 transition-all duration-500 ease-in-out ${
+                hovered
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-4"
               }`}
             >
               <div className="text-lg">{product.title}</div>
@@ -146,7 +135,7 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
               </div>
             </div>
           </div>
-        </Link>
+        </div>
         <div className="flex justify-between px-4 py-2 gap-3">
           <Link to={`/product/${product._id}`}>
             <button className="border border-pink-500 rounded text-black h-9 px-4 hover:bg-gray-200">

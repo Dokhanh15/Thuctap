@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Field, Form } from "react-final-form";
 import axios from "axios";
 import { Category, ProductFormParams } from "src/types/products";
+import Loading from "../loading/Loading";
 
 type ProductFormProps = {
   onSubmit: (formData: FormData) => void;
@@ -30,13 +31,10 @@ function ProductForm({ onSubmit, initialValues, isEdit }: ProductFormProps) {
   useEffect(() => {
     if (initialValues) {
       if (initialValues.image && typeof initialValues.image === 'string') {
-        if (!file) { // Chỉ cập nhật `imagePreview` khi không có file mới
-          setImagePreview(initialValues.image);
-        }
+        setImagePreview(initialValues.image);
       }
     }
   }, [initialValues]);
-  
 
   useEffect(() => {
     if (file) {
@@ -54,7 +52,7 @@ function ProductForm({ onSubmit, initialValues, isEdit }: ProductFormProps) {
     const errors: { [key: string]: string } = {};
     if (!values.title) errors.title = "Vui lòng nhập tiêu đề";
     if (!values.category) errors.category = "Vui lòng chọn danh mục";
-    if (!values.image) errors.image = "Vui lòng nhập ảnh sản phẩm";
+    if (!values.image && !file) errors.image = "Vui lòng nhập ảnh sản phẩm";
     if (!values.price) errors.price = "Vui lòng nhập giá sản phẩm";
     return errors;
   };
@@ -63,15 +61,8 @@ function ProductForm({ onSubmit, initialValues, isEdit }: ProductFormProps) {
     if (e.target.files && e.target.files.length > 0) {
       const newFile = e.target.files[0];
       setFile(newFile);
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string | ArrayBuffer | null);
-      };
-      reader.readAsDataURL(newFile);
     }
   };
-  
 
   const handleFormSubmit = async (values: ProductFormParams) => {
     const formData = new FormData();
@@ -83,11 +74,10 @@ function ProductForm({ onSubmit, initialValues, isEdit }: ProductFormProps) {
     if (file) {
       formData.append("image", file);
     } else if (typeof imagePreview === 'string') {
-      // Đảm bảo rằng hình ảnh hiện tại được giữ lại nếu không có file mới
       formData.append("existingImage", imagePreview);
     }
   
-    await onSubmit(formData); 
+    await onSubmit(formData);
   };
 
   return (
@@ -203,7 +193,8 @@ function ProductForm({ onSubmit, initialValues, isEdit }: ProductFormProps) {
                 disabled={submitting}
                 className="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {submitting ? "Đang cập nhật..." : "Cập nhật sản phẩm"}
+                <Loading/>
+                {isEdit ? (submitting ? `Đang cập nhật...` : "Cập nhật sản phẩm") : (submitting ? `Đang thêm...` : "Thêm sản phẩm")}
               </button>
             </div>
           </div>
