@@ -325,9 +325,12 @@ const Header = ({ onSearch }) => {
                   />
                 </svg>
 
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
-                  0
-                </span>
+                {/* Hiển thị số lượng sản phẩm trong giỏ */}
+                {cartQuantity > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                    {cartQuantity}
+                  </span>
+                )}
               </a>
 
               {/* User Profile */}

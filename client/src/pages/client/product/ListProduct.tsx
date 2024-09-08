@@ -1,5 +1,3 @@
-// Updated ListProduct.tsx
-
 import { FC, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useUser } from "src/contexts/user";
@@ -9,6 +7,7 @@ import axiosInstance from "src/config/configAxios";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { Product } from "src/types/products";
+import { useProductCart } from "src/Hooks/CartProducts";
 
 type ProductCardProps = {
   product: Product;
@@ -20,6 +19,7 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
   const navigate = useNavigate();
   const [quantity] = useState<number>(1);
   const [liked, setLiked] = useState(false);
+  const { addToCart } = useProductCart(); 
 
   useEffect(() => {
     const checkLikedStatus = async () => {
@@ -84,6 +84,7 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
     }
   };
 
+  // Logic for adding product to cart
   const handleAddToCart = (
     event: React.MouseEvent<HTMLButtonElement>,
     product: Product
@@ -95,7 +96,9 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
     }
 
     if (quantity <= 0) return;
-    // Xử lý thêm sản phẩm vào giỏ hàng ở đây
+
+    addToCart({ product, quantity });
+    toast.success("Thêm vào giỏ hàng thành công!");
   };
 
   return (
@@ -143,7 +146,7 @@ const ListProduct: FC<ProductCardProps> = ({ product }) => {
             </button>
           </Link>
           <button
-            onClick={(event) => handleAddToCart(event, product)}
+            onClick={(event) => handleAddToCart(event, product)} 
             className="bg-gradient-to-r from-pink-500 to-pink-500 bg-size-200% rounded text-white h-9 px-4 hover:from-pink-700 hover:to-pink-700"
           >
             Thêm giỏ hàng

@@ -16,6 +16,7 @@ import LikedProducts from "./pages/client/product/ProductLike";
 import Login from "./pages/client/user/Login";
 import UserProfile from "./pages/client/user/Profile/Profile";
 import Register from "./pages/client/user/Register";
+import Cart from "./pages/client/cart/Cart";
 
 const routeConfig = [
   {
@@ -33,6 +34,10 @@ const routeConfig = [
       {
         path: "product/liked",
         element: <LikedProducts/>,
+      },
+      {
+        path: "carts",
+        element: <Cart/>,
       },
 
       {
