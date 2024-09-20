@@ -1,23 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../../assets/img/logo.png";
 import { Menu, MenuItem, IconButton } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useUser } from "src/contexts/user";
 import axios from "axios";
 import { Category } from "src/types/products";
+import more from "../../assets/img/more.png";
+import { useCart } from "src/contexts/Card";
 
-const Header = () => {
-  const { user, setUser } = useUser();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+interface HeaderProps {
+  onSearch?: (searchTerm: string) => void; 
+}
+const Header: React.FC<HeaderProps> =  ({ onSearch = () => {} }) => {
+  const { user, setUser } = useUser();  
+  const [isLoggedIn, setIsLoggedIn] =  useState(!!user);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const navigate = useNavigate(); // useNavigate hook
-  const [, setUserProfile] = useState<any>(null); // State for user profile
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const navigate = useNavigate();
+  const { cart } = useCart();
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [, setUserProfile] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    setIsLoggedIn(!!user);
+    const token = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+
+    if (token && savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsLoggedIn(true);
+    }
+  }, [setUser]);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true); 
+    }
   }, [user]);
 
   useEffect(() => {
@@ -42,7 +64,7 @@ const Header = () => {
         },
       });
       setUserProfile(response.data);
-      navigate("/profile"); 
+      navigate("/profile");
     } catch (error) {
       console.error("Error fetching user profile", error);
     }
@@ -56,21 +78,59 @@ const Header = () => {
     window.location.href = "/login";
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuToggle = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  const handleMenuUserOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     setUserMenuOpen(true);
   };
 
-  const handleMenuClose = () => {
+  const handleMenuUserClose = () => {
     setAnchorEl(null);
     setUserMenuOpen(false);
   };
 
+  const handleMoreMenuOpen = () => {
+    setMoreMenuOpen(true);
+  };
+
+  const handleMoreMenuClose = () => {
+    setMoreMenuOpen(false);
+  };
+
   const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as Node;
     if (anchorEl && !anchorEl.contains(event.target as Node)) {
-      handleMenuClose();
+      handleMenuUserClose();
+    }
+    if (
+      anchorEl &&
+      !(target instanceof Element && target.closest(".more-menu"))
+    ) {
+      handleMoreMenuClose();
     }
   };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchQuery = event.target.value;
+    setSearchQuery(newSearchQuery);
+    onSearch(newSearchQuery);
+  };
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    onSearch(searchQuery);
+  };
+
+  const cartQuantity = useMemo(
+    () =>
+      cart
+        ? cart.products.reduce((total, { quantity }) => total + quantity, 0)
+        : 0,
+    [cart]
+  );
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
@@ -81,14 +141,85 @@ const Header = () => {
 
   return (
     <header className="bg-white border-b">
-      <div className="container mx-auto flex items-center justify-between p-4">
-        {/* Logo */}
-        <a href="/" className="flex items-center">
-          <img src={logo} width={115} alt="Logo" />
-        </a>
+      <div className="container mx-auto flex  items-center justify-between p-4">
+        <div className="flex gap-5">
+          <div className="lg:hidden flex items-center relative">
+            <IconButton onClick={handleMoreMenuOpen}>
+              <img src={more} alt="More" className="w-6 h-6" />
+            </IconButton>
+
+            {/* Menu */}
+            <Menu
+              anchorEl={anchorEl}
+              open={moreMenuOpen}
+              onClose={handleMoreMenuClose}
+              className="absolute mx-3 mt-16 z-50"
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "left",
+              }}
+              transformOrigin={{
+                vertical: "bottom",
+                horizontal: "left",
+              }}
+            >
+              <MenuItem onClick={handleMoreMenuClose}>
+                <a href="/" className="text-gray-800">
+                  Trang chủ
+                </a>
+              </MenuItem>
+              <MenuItem onClick={handleMoreMenuClose}>
+                <a href="/" className="text-gray-800">
+                  Sản phẩm
+                </a>
+              </MenuItem>
+              <MenuItem>
+                <div className="relative">
+                  <button
+                    className="text-gray-800 hover:border-b-2 border-gray-600 flex items-center"
+                    onClick={handleMenuToggle}
+                  >
+                    Danh mục
+                    <ArrowDropDownIcon />
+                  </button>
+                  <div
+                    className={`absolute z-10 left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg transition-all duration-300 ${
+                      isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+                    }`}
+                  >
+                    {categories.map((category) => (
+                      <a
+                        key={category._id}
+                        href="#"
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      >
+                        {category.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </MenuItem>
+              <MenuItem onClick={handleMoreMenuClose}>
+                <a href="/product/liked" className="text-gray-800">
+                  Yêu thích
+                </a>
+              </MenuItem>
+              <MenuItem onClick={handleMoreMenuClose}>
+                <a href="/product/liked" className="text-gray-800">
+                  Liên hệ
+                </a>
+              </MenuItem>
+            </Menu>
+          </div>
+
+          {/* Logo */}
+          <a href="/" className="flex items-center">
+            <img src={logo} width={100} alt="Logo" />
+          </a>
+        </div>
 
         {/* Navigation Links */}
-        <div className="flex items-center space-x-6">
+        <div className="hidden lg:flex items-center space-x-6">
           <a
             href="/"
             className="text-gray-800 hover:border-b-2 border-gray-600"
@@ -149,10 +280,15 @@ const Header = () => {
         </div>
 
         {/* Search Form */}
-        <form className="relative flex items-center">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="relative items-center hidden lg:flex"
+        >
           <input
             type="search"
             placeholder="Tìm kiếm..."
+            value={searchQuery}
+            onChange={handleSearchChange}
             className="px-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
           />
           <button
@@ -198,9 +334,12 @@ const Header = () => {
                   />
                 </svg>
 
-                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
-                  0
-                </span>
+                {/* Hiển thị số lượng sản phẩm trong giỏ */}
+                {cartQuantity > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-semibold px-1.5 py-0.5 rounded-full">
+                    {cartQuantity}
+                  </span>
+                )}
               </a>
 
               {/* User Profile */}
@@ -214,15 +353,17 @@ const Header = () => {
                       src={user.avatar}
                       alt="User Avatar"
                       className="w-8 h-8 rounded-full cursor-pointer"
-                      onClick={handleMenuOpen}
+                      onClick={handleMenuUserOpen}
                     />
                   ) : (
-                    <IconButton onClick={handleMenuOpen}>
+                    <IconButton onClick={handleMenuUserOpen}>
                       <AccountCircleIcon />
                     </IconButton>
                   )
                 ) : (
-                  <a href="/login" className="text-gray-700">Đăng nhập</a>
+                  <a href="/login" className="text-gray-700">
+                    Đăng nhập
+                  </a>
                 )}
               </div>
 
@@ -230,25 +371,27 @@ const Header = () => {
               <Menu
                 anchorEl={anchorEl}
                 open={userMenuOpen}
-                onClose={handleMenuClose}
+                onClose={handleMenuUserClose}
               >
                 <MenuItem
                   onClick={() => {
-                    handleViewProfile(); // Fetch and navigate to profile
-                    handleMenuClose();
+                    handleViewProfile();
+                    handleMenuUserClose();
                   }}
                 >
                   Tài khoản của tôi
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
-                    handleViewProfile(); // Fetch and navigate to profile
-                    handleMenuClose();
+                    handleViewProfile();
+                    handleMenuUserClose();
                   }}
                 >
-                  Đơn mua 
+                  Đơn mua
                 </MenuItem>
-                <MenuItem sx={{color:'red'}} onClick={handleLogout}>Đăng xuất</MenuItem>
+                <MenuItem sx={{ color: "red" }} onClick={handleLogout}>
+                  Đăng xuất
+                </MenuItem>
               </Menu>
             </>
           ) : (
@@ -270,6 +413,32 @@ const Header = () => {
           )}
         </div>
       </div>
+      <form className="relative flex items-center lg:hidden w-full px-9 mb-3">
+        <input
+          type="search"
+          placeholder="Tìm kiếm..."
+          className="w-full px-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-600"
+        />
+        <button
+          type="submit"
+          className="absolute right-16 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600"
+        >
+          <svg
+            className="w-5 h-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"
+            />
+          </svg>
+        </button>
+      </form>
     </header>
   );
 };

@@ -1,4 +1,5 @@
 // Product type
+// Product type
 export type Product = {
   _id: string;
   title: string;
@@ -10,9 +11,13 @@ export type Product = {
     count: number;
     rate: number;
   };
-  sizes?: string[]; // Danh sách kích thước
-  colors?: string[]; // Danh sách màu sắc (mã hex)
+  discountPercentage?: number; 
+  saleStartDateTime: string;
+  saleEndDateTime?: string; 
+  sizes?: string[]; 
+  colors?: string[]; 
 };
+
 
 // Category type
 export type Category = {
@@ -24,13 +29,19 @@ export type Category = {
 
 // ProductFormParams type
 export type ProductFormParams = {
-  _id: string;
+  _id?: string; // Có thể không có nếu tạo mới sản phẩm
   title: string;
   price: number;
-  image: string|File| null;
+  image: string | File | null;
   description: string;
   category: string;
+  discountPercentage?: number; 
+  saleStartDateTime: string;
+  saleEndDateTime?: string; 
+  sizes?: string[]; // Danh sách kích thước (tùy chọn)
+  colors?: string[]; // Danh sách màu sắc (tùy chọn)
 };
+
 
 // Định nghĩa kiểu cho sản phẩm trong giỏ hàng
 export interface CartProduct {

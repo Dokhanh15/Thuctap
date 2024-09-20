@@ -29,6 +29,8 @@ const AdminProductList = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
+  const [timeLefts, setTimeLefts] = useState<{ [key: string]: number }>({});
+
   const getAllProduct = async () => {
     try {
       setLoading(true);
@@ -40,6 +42,18 @@ const AdminProductList = () => {
         );
       }
       setProducts(filteredData);
+      // Initialize countdown times
+      const now = new Date().getTime();
+      const initialTimeLefts = filteredData.reduce(
+        (acc: { [key: string]: number }, product: Product) => {
+          const saleEndDate = new Date(product.saleEndDateTime || 0).getTime();
+          const timeLeft = Math.max(0, saleEndDate - now);
+          acc[product._id] = timeLeft;
+          return acc;
+        },
+        {}
+      );
+      setTimeLefts(initialTimeLefts);
     } catch (error) {
       toast.error((error as AxiosError)?.message);
       console.log("Có lỗi xảy ra, vui lòng thử lại sau!", error);
@@ -50,6 +64,39 @@ const AdminProductList = () => {
   useEffect(() => {
     getAllProduct();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get("/categories");
+        setCategories(data);
+      } catch (error) {
+        toast.error((error as AxiosError)?.message);
+        console.error("Error fetching categories", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLefts((prevTimeLefts) => {
+        const now = new Date().getTime();
+        const updatedTimeLefts = { ...prevTimeLefts };
+        Object.keys(updatedTimeLefts).forEach((productId) => {
+          const saleEndDate = new Date(
+            products.find((product) => product._id === productId)
+              ?.saleEndDateTime || 0
+          ).getTime();
+          updatedTimeLefts[productId] = Math.max(0, saleEndDate - now);
+        });
+        return updatedTimeLefts;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [products]);
 
   const filterProducts = () => {
     let filteredData = products;
@@ -65,20 +112,6 @@ const AdminProductList = () => {
     }
     return filteredData;
   };
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await axios.get("/categories");
-        setCategories(data);
-      } catch (error) {
-        toast.error((error as AxiosError)?.message);
-        console.error("Error fetching categories", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
 
   const filteredProducts = filterProducts();
 
@@ -115,7 +148,7 @@ const AdminProductList = () => {
       setIdDelete(null);
     } catch (error) {
       toast.error((error as AxiosError)?.message);
-      console.error("Error fetching categories", error);
+      console.error("Error deleting product", error);
     } finally {
       setLoading(false);
     }
@@ -146,7 +179,6 @@ const AdminProductList = () => {
   const renderPaginationButtons = () => {
     const buttons = [];
 
-    // Always show the first page
     if (totalPages > 1) {
       buttons.push(
         <button
@@ -198,7 +230,6 @@ const AdminProductList = () => {
       );
     }
 
-    // Always show the last page
     buttons.push(
       <button
         key={totalPages}
@@ -221,7 +252,6 @@ const AdminProductList = () => {
       <div className="container mx-auto">
         <div className="space-y-4">
           <h3 className="text-center text-5xl">Danh sách sản phẩm</h3>
-
           <>
             <div className="flex justify-between items-center">
               <div className="flex gap-2">
@@ -291,6 +321,8 @@ const AdminProductList = () => {
                     <th className="py-3 px-4">Tiêu đề</th>
                     <th className="py-3 px-4">Ảnh</th>
                     <th className="py-3 px-4">Giá</th>
+                    <th className="py-3 px-4">% giảm giá</th>
+                    <th className="py-3 px-4">Thời gian giảm giá</th>
                     <th className="py-3 px-4">Mô tả</th>
                     <th className="py-3 px-4">Danh mục</th>
                     <th className="py-3 px-4"></th>
@@ -310,9 +342,76 @@ const AdminProductList = () => {
                             className="w-24 h-20 object-cover rounded-md"
                           />
                         </td>
-                        <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                          ${product.price}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {product.saleEndDateTime &&
+                          timeLefts[product._id] > 0 ? (
+                            <>
+                              <span className="line-through text-gray-500">
+                                ${product.price.toLocaleString()}
+                              </span>
+                              <br />
+                              <span className="text-red-600 font-bold">
+                                $
+                                {product.discountPercentage
+                                  ? (
+                                      product.price -
+                                      (product.price *
+                                        product.discountPercentage) /
+                                        100
+                                    ).toLocaleString()
+                                  : product.price.toLocaleString()}{" "}
+                              </span>
+                            </>
+                          ) : (
+                            <span>${product.price.toLocaleString()}</span>
+                          )}
                         </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {product.saleEndDateTime &&
+                          timeLefts[product._id] > 0 ? (
+                            <span className="text-green-600 font-bold">
+                              {product.discountPercentage
+                                ? `${product.discountPercentage}%`
+                                : "---"}
+                            </span>
+                          ) : (
+                            <span>---</span>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {product.saleEndDateTime ? (
+                            timeLefts[product._id] > 0 ? (
+                              <span>
+                                {Math.floor(
+                                  timeLefts[product._id] / (1000 * 60 * 60 * 24)
+                                )}{" "}
+                                ngày{" "}
+                                {Math.floor(
+                                  (timeLefts[product._id] %
+                                    (1000 * 60 * 60 * 24)) /
+                                    (1000 * 60 * 60)
+                                )}{" "}
+                                giờ{" "}
+                                {Math.floor(
+                                  (timeLefts[product._id] % (1000 * 60 * 60)) /
+                                    (1000 * 60)
+                                )}{" "}
+                                phút{" "}
+                                {Math.floor(
+                                  (timeLefts[product._id] % (1000 * 60)) / 1000
+                                )}{" "}
+                                giây
+                              </span>
+                            ) : (
+                              <span className="text-gray-800">---</span>
+                            )
+                          ) : (
+                            <span className="text-gray-800">---</span>
+                          )}
+                        </td>
+
                         <td className="py-4 px-6 text-sm font-medium text-gray-900">
                           {product.description}
                         </td>

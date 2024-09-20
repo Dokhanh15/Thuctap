@@ -1,7 +1,7 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth";
-import authMiddleware from "../middleware/authMiddleware";
 import upload from "../config/mulerConfig";
+import authMiddleware from "../middleware/authMiddleware";
 
 const authRouter = Router();
 const authController = new AuthController();
