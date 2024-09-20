@@ -35,7 +35,7 @@ const CategoryList = () => {
     <>
       <div>
         <h3 className="text-x px-20  text-gray-800">DANH MỤC</h3>
-        <div className="grid grid-cols-10 gap-2 px-20 justify-center mb-20">
+        <div className="grid grid-cols-10 gap-2 px-20 justify-center mb-10">
           {categories.slice(0, 10).map((category) => (
             <div
               key={category._id}

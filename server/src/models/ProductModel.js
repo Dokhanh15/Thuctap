@@ -21,7 +21,25 @@ const ProductSchema = new Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-    }
+    },
+    rating: {
+      count: {
+        type: Number,
+      },
+      rate: {
+        type: Number,
+      },
+    },
+    discountPercentage: {
+      type: Number,
+      default: 0, 
+    },
+    saleStartDateTime:{
+      type: String,
+    },
+    saleEndDateTime: {
+      type: String, 
+    },
   },
   {
     timestamps: true,

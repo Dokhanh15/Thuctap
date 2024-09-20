@@ -2,11 +2,12 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import axios, { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import Loading from "src/component/loading/Loading";
 import { useStatus } from "src/contexts/Status";
 import { Product } from "src/types/products";
-import ListProduct from "./ListProduct";
-import Loading from "src/component/loading/Loading";
 import CategoryList from "../category/Categories";
+import ListProduct from "./ListProduct";
+import SaleProducts from "./SaleProduct";
 
 function Homepage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,6 +18,11 @@ function Homepage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [noResults, setNoResults] = useState<boolean>(false);
+  const handleUnlikeProduct = (productId: string) => {
+    setProducts((prevProducts) =>
+      prevProducts.filter((product) => product._id !== productId)
+    );
+  };
 
   const getAllProducts = async (
     category: string | null = null,
@@ -144,6 +150,7 @@ function Homepage() {
       <div className=" mx-auto my-3">
         <Loading />
         <CategoryList />
+        <SaleProducts productList={products}  />;
         <h2 className=" mx-20 text-center border-b border-black p-5 bg-gray-100">GỢI Ý HÔM NAY</h2>
         <div className="flex flex-wrap justify-center gap-5 p-6">
           {noResults ? (

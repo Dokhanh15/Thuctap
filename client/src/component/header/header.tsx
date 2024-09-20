@@ -10,9 +10,12 @@ import { Category } from "src/types/products";
 import more from "../../assets/img/more.png";
 import { useCart } from "src/contexts/Card";
 
-const Header = ({ onSearch }) => {
-  const { user, setUser } = useUser();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+interface HeaderProps {
+  onSearch?: (searchTerm: string) => void; 
+}
+const Header: React.FC<HeaderProps> =  ({ onSearch = () => {} }) => {
+  const { user, setUser } = useUser();  
+  const [isLoggedIn, setIsLoggedIn] =  useState(!!user);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -32,6 +35,12 @@ const Header = ({ onSearch }) => {
       setIsLoggedIn(true);
     }
   }, [setUser]);
+
+  useEffect(() => {
+    if (user) {
+      setIsLoggedIn(true); 
+    }
+  }, [user]);
 
   useEffect(() => {
     // Fetch categories from API
@@ -205,7 +214,7 @@ const Header = ({ onSearch }) => {
 
           {/* Logo */}
           <a href="/" className="flex items-center">
-            <img src={logo} width={115} alt="Logo" />
+            <img src={logo} width={100} alt="Logo" />
           </a>
         </div>
 

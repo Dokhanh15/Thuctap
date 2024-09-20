@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import connectMongoDB from "./config/dbconfig.js";
 import router from "./routes/index.js";
 
-config(); // Load environment variables from .env file
+config();
 
 const app = express();
 app.use(cors());
